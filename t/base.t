@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: base.t,v 1.4 2001/05/03 19:14:13 eserte Exp $
+# $Id: base.t,v 1.6 2001/12/03 14:10:10 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -43,8 +43,16 @@ if (!defined $ENV{HOME} || !-e $ENV{HOME}) {
     ok($file2, "$ENV{HOME}");
 }
 
+$top->Button(-text => "Set -textvariable 1",
+	     -command => sub {
+		 use FindBin;
+		 $file = "$FindBin::RealBin/$FindBin::RealScript";
+	     })->pack;
 $top->Button(-text => "OK",
 	     -command => sub { $top->destroy })->pack;
+
+if ($ENV{BATCH}) { $top->after(1000, sub { $top->destroy }) }
+
 MainLoop;
 
 __END__

@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Dialog.pm,v 1.4 2001/05/04 18:55:23 eserte Exp $
+# $Id: Dialog.pm,v 1.5 2002/01/24 08:31:16 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -46,6 +46,9 @@ sub Populate {
 		     %pe_args)->pack;
     $w->Advertise("PathEntry" => $pe);
 
+    $pe->bind("<Return>" => sub {
+		  $w->Subwidget("B_OK")->Invoke;
+	      });
     $w->bind("<Escape>" => sub {
 		 $w->Subwidget("B_Cancel")->Invoke;
 	     });

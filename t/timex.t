@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: timex.t,v 1.4 2001/05/05 15:58:10 eserte Exp $
+# $Id: timex.t,v 1.5 2001/12/03 14:10:15 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -101,6 +101,9 @@ $top->Label(-textvariable => \$pathname)->grid;
 
 $top->Button(-text => "OK",
 	     -command => sub { $top->destroy })->grid;
+
+if ($ENV{BATCH}) { $top->after(1000, sub { $top->destroy }) }
+
 MainLoop;
 
 __END__

@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: PathEntry.pm,v 2.10 2001/05/05 15:58:21 eserte Exp $
+# $Id: PathEntry.pm,v 2.17 2001/12/03 14:08:48 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -16,11 +16,87 @@ package Tk::PathEntry;
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%02d", q$Revision: 2.10 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 2.17 $ =~ /(\d+)\.(\d+)/);
 
 use base qw(Tk::Derived Tk::Entry);
 
 Construct Tk::Widget 'PathEntry';
+
+sub ClassInit {
+    my($class,$mw) = @_;
+    $class->SUPER::ClassInit($mw);
+
+    $mw->bind($class,"<Tab>" => sub {
+		  my $w = shift;
+		  if (!defined $w->{CurrentChoices}) {
+		      # this is called only on init:
+		      my $pathref = $w->cget(-textvariable);
+		      $w->_popup_on_key($$pathref);
+		  }
+		  if (@{$w->{CurrentChoices}} > 0) {
+		      my $sep = $w->cget(-separator);
+		      my $common = $w->_common_match;
+		      if ($w->Callback(-isdircmd => $w, $common) &&
+			  $common !~ m|\Q$sep\E$|                &&
+			  @{$w->{CurrentChoices}} == 1
+			 ) {
+			  $common .= $sep;
+		      }
+		      my $pathref = $w->cget(-textvariable);
+		      $$pathref = $common;
+		      $w->icursor("end");
+		      $w->xview("end");
+
+		      $w->_popup_on_key($$pathref);
+		  } else {
+		      $w->bell;
+		  }
+		  Tk->break;
+	      });
+
+#XXX not yet! => problems, because <Return> should be bound to set
+# the entry value ... but <Return> is normally bound from outside this
+# module...XXX
+#      $mw->bind($class,"<Down>" => sub {
+#  		  my $w = shift;
+#  		  my $choices_t = $w->Subwidget("ChoicesToplevel");
+#  		  if ($choices_t && $choices_t->state ne 'withdrawn') {
+#  		      my $choices_l = $w->Subwidget("ChoicesLabel");
+#  		      my @sel = $choices_l->curselection;
+#  		      $choices_l->selectionClear(0,"end");
+#  		      if (!@sel) {
+#  			  $choices_l->selectionSet(0);
+#  		      } else {
+#  			  $choices_l->selectionSet($sel[0]+1);
+#  		      }
+#  		  }
+#  	      });
+#      $mw->bind($class,"<Up>" => sub {
+#  		  my $w = shift;
+#  		  my $choices_t = $w->Subwidget("ChoicesToplevel");
+#  		  if ($choices_t && $choices_t->state ne 'withdrawn') {
+#  		      my $choices_l = $w->Subwidget("ChoicesLabel");
+#  		      my @sel = $choices_l->curselection;
+#  		      $choices_l->selectionClear(0,"end");
+#  		      if (@sel && $sel[0] > 0) {
+#  			  $choices_l->selectionSet($sel[0]-1);
+#  		      }
+#  		  }
+#  	      });
+
+    for ("Meta", "Alt") {
+	$mw->bind($class,"<$_-BackSpace>" => '_delete_last_path_component');
+	$mw->bind($class,"<$_-d>"         => '_delete_next_path_component');
+	$mw->bind($class,"<$_-f>"         => '_forward_path_component');
+	$mw->bind($class,"<$_-b>"         => '_backward_path_component');
+    }
+    $mw->bind($class,"<FocusOut>" => sub {
+		  my $w = shift;
+		  $w->Finish;
+	      });
+
+    $class;
+}
 
 sub Populate {
     my($w, $args) = @_;
@@ -29,11 +105,20 @@ sub Populate {
     $choices_t->overrideredirect(1);
     $choices_t->withdraw;
 
-    my $choices_l = $choices_t->Label(-justify => "left",
-				      -background => "yellow",
-				      -anchor => "w")->pack(-fill => "both",
-							    -expand => 1);
+    my $choices_l = $choices_t->Listbox(-background => "yellow",
+					-border => 0,
+				       )->pack(-fill => "both",
+					       -expand => 1);
     $w->Advertise("ChoicesLabel" => $choices_l);
+    $choices_l->bind("<1>" => sub {
+			 my $lb = shift;
+			 my $y = $lb->nearest($lb->XEvent->y);
+			 $ {$w->cget(-textvariable)} = $lb->get($y);
+			 $w->icursor("end");
+			 $w->xview("end");
+			 $choices_t->withdraw;
+			 $w->Callback(-selectcmd => $w);
+		     });
 
     if (exists $args->{-vcmd} ||
 	exists $args->{-validatecommand} ||
@@ -42,15 +127,19 @@ sub Populate {
     }
 
     $args->{-vcmd} = sub {
-	my($pathname) = @_;
-	if ($w->ismapped) {
-	    $w->{CurrentChoices} = $w->Callback(-choicescmd => $w, $pathname);
-	    if ($w->{CurrentChoices} && @{$w->{CurrentChoices}} > 1) {
-		$w->_show_choices($w->rootx);
-	    } else {
-		$choices_t->withdraw;
-	    }
+	my($pathname) = $_[0];
+	my($action)   = $_[4];
+	return 1 if $action == -1; # nothing on forced validation
+	$w->_popup_on_key($pathname);
+
+	if ($action == 1 && # only on INSERT
+	    $w->{CurrentChoices} && @{$w->{CurrentChoices}} == 1 &&
+	    $w->cget(-autocomplete)) {
+	    # XXX the afterIdle is hackish
+	    $w->afterIdle(sub { $ {$w->cget(-textvariable)} = $w->{CurrentChoices}[0] });
+	    return 0;
 	}
+
 	1;
     };
     $args->{-validate} = 'key';
@@ -60,52 +149,18 @@ sub Populate {
 	$args->{-textvariable} = \$pathname;
     }
 
-    $w->bind("<Tab>" => sub {
-		 if (!defined $w->{CurrentChoices}) {
-		     # this is called only on init:
-		     my $pathref = $w->cget(-textvariable);
-		     $w->{CurrentChoices} = $w->Callback(-choicescmd => $w, $$pathref);
-		     if (@{$w->{CurrentChoices}} > 1) {
-			 $w->_show_choices($w->rootx);
-		     }
-		 }
-		 if (@{$w->{CurrentChoices}} > 0) {
-		     my $sep = $w->cget(-separator);
-		     my $common = $w->_common_match;
-		     if ($w->Callback(-isdircmd => $w, $common) &&
-			 $common !~ m|\Q$sep\E$|                &&
-			 @{$w->{CurrentChoices}} == 1
-			) {
-			 $common .= $sep;
-		     }
-		     my $pathref = $w->cget(-textvariable);
-		     $$pathref = $common;
-		     $w->icursor("end");
-		     $w->xview("end");
-		 } else {
-		     $w->bell;
-		 }
-		 Tk->break;
-	     });
-
-    for ("M", "Alt") {
-	$w->bind("<$_-BackSpace>" => sub {
-		     $w->_delete_last_path_component;
-		     Tk->break;
-		 });
-    }
-    $w->bind("<FocusOut>" => sub {
-		 $w->Finish;
-	     });
-
     $w->ConfigSpecs
 	(-initialdir  => ['PASSIVE',  undef, undef, undef],
 	 -initialfile => ['PASSIVE',  undef, undef, undef],
+	 # XXX auf den OS-separator setzen??? unter win32 ausprobieren!
 	 -separator   => ['PASSIVE',  undef, undef, "/"],
 	 -isdircmd    => ['CALLBACK', undef, undef, ['_is_dir']],
 	 -isdirectorycommand => 'isdircmd',
 	 -choicescmd  => ['CALLBACK', undef, undef, ['_get_choices']],
 	 -choicescommand     => 'choicescmd',
+	 -autocomplete => ['PASSIVE'],
+	 -selectcmd   => ['CALLBACK'],
+	 -selectcommand => 'selectcmd',
 	);
 }
 
@@ -125,17 +180,61 @@ sub Finish {
     delete $w->{CurrentChoices};
 }
 
+sub _popup_on_key {
+    my($w, $pathname) = @_;
+    if ($w->ismapped) {
+	$w->{CurrentChoices} = $w->Callback(-choicescmd => $w, $pathname);
+	if ($w->{CurrentChoices} && @{$w->{CurrentChoices}} > 1) {
+	    $w->_show_choices($w->rootx);
+	} else {
+	    my $choices_t = $w->Subwidget("ChoicesToplevel");
+	    $choices_t->withdraw;
+	}
+    }
+}
+
 sub _delete_last_path_component {
     my $w = shift;
 
     my $before_cursor = substr($w->get, 0, $w->index("insert"));
     my $after_cursor = substr($w->get, $w->index("insert"));
     my $sep = $w->cget(-separator);
-    $before_cursor =~ s|\Q$sep\E$||;
-    $before_cursor =~ s|[^$sep]+$||;
+    $before_cursor =~ s|[^$sep]+\Q$sep\E?$||;
     my $pathref = $w->cget(-textvariable);
     $$pathref = $before_cursor . $after_cursor;
     $w->icursor(length $before_cursor);
+    $w->_popup_on_key($$pathref);
+}
+
+sub _delete_next_path_component {
+    my $w = shift;
+
+    my $before_cursor = substr($w->get, 0, $w->index("insert"));
+    my $after_cursor = substr($w->get, $w->index("insert"));
+    my $sep = $w->cget(-separator);
+    $after_cursor =~ s|^\Q$sep\E?[^$sep]+||;
+    my $pathref = $w->cget(-textvariable);
+    $$pathref = $before_cursor . $after_cursor;
+    $w->icursor(length $before_cursor);
+    $w->_popup_on_key($$pathref);
+}
+
+sub _forward_path_component {
+    my $w = shift;
+    my $after_cursor = substr($w->get, $w->index("insert"));
+    my $sep = $w->cget(-separator);
+    if ($after_cursor =~ m|^(\Q$sep\E?[^$sep]+)|) {
+	$w->icursor($w->index("insert") + length $1);
+    }
+}
+
+sub _backward_path_component {
+    my $w = shift;
+    my $before_cursor = substr($w->get, 0, $w->index("insert"));
+    my $sep = $w->cget(-separator);
+    if ($before_cursor =~ m|([^$sep]+\Q$sep\E?)$|) {
+	$w->icursor($w->index("insert") - length $1);
+    }
 }
 
 sub _common_match {
@@ -158,10 +257,28 @@ sub _common_match {
 }
 
 sub _get_choices {
-    my $pathname = $_[1];
-    my $glob;
-    $glob = "$pathname*";
-    [ glob($glob) ];
+    my($w, $pathname) = @_;
+    my $sep = $w->cget(-separator);
+    if ($pathname =~ m|^~([^$sep]+)$|) {
+	my $userglob = $1;
+	my @users;
+	while(my $user = getpwent) {
+	    if ($user =~ /^$userglob/) {
+		push @users, "~$user$sep";
+		last if $#users > 50; # XXX make better optimization!
+	    }
+	}
+	endpwent;
+	if (@users) {
+	    \@users;
+	} else {
+	    [$pathname];
+	}
+    } else {
+	my $glob;
+	$glob = "$pathname*";
+	[ glob($glob) ];
+    }
 }
 
 sub _show_choices {
@@ -169,7 +286,20 @@ sub _show_choices {
     my $choices = $w->{CurrentChoices};
     my $choices_l = $w->Subwidget("ChoicesLabel");
     my $choices_t = $w->Subwidget("ChoicesToplevel");
-    $choices_l->configure(-text => join("\n", @$choices));
+    #$choices_l->configure(-text => join("\n", @$choices));
+    $choices_l->delete(0,"end");
+    my $max_height = @$choices;
+    if ($max_height > $choices_l->cget(-height)) {
+	$max_height = $choices_l->cget(-height);
+    }
+    $choices_l->insert("end", @{$choices}[0 .. $max_height-1]);
+    my $max_width;
+    foreach (@{$choices}[0 .. $max_height-1]) {
+	if (!defined $max_width || length($_) > $max_width) {
+	    $max_width = length($_);
+	}
+    }
+    $choices_l->configure(-width => $max_width);
     $choices_t->geometry("+" . $x_pos . "+" . ($w->rooty+$w->height));
     $choices_t->deiconify;
     $choices_t->raise;
