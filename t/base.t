@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: base.t,v 1.6 2001/12/03 14:10:10 eserte Exp $
+# $Id: base.t,v 1.10 2003/10/22 21:26:15 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -25,9 +25,13 @@ BEGIN {
 
 BEGIN { plan tests => 3 }
 
+if (!defined $ENV{BATCH}) { $ENV{BATCH} = 1 }
+
 my $top = new MainWindow;
 my $file; # = "$ENV{HOME}";
 my $pe = $top->PathEntry(-textvariable => \$file,
+			 -selectcmd => sub { warn "selected...\n" },
+			 -cancelcmd => sub { warn "cancelled...\n" },
 			 -initialfile => $ENV{HOME})->pack;
 ok(!!Tk::Exists($pe), 1);
 $top->Label(-textvariable => \$file)->pack;

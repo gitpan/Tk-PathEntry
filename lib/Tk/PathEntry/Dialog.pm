@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Dialog.pm,v 1.5 2002/01/24 08:31:16 eserte Exp $
+# $Id: Dialog.pm,v 1.8 2003/11/13 21:50:15 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -15,6 +15,9 @@
 package Tk::PathEntry::Dialog;
 use Tk::PathEntry;
 use base qw(Tk::DialogBox);
+use strict;
+use vars qw($VERSION);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/);
 
 Construct Tk::Widget 'PathEntryDialog';
 
@@ -22,8 +25,17 @@ sub import {
     if (defined $_[1] and $_[1] eq 'as_default') {
 	local $^W = 0;
 	package Tk;
-	*FDialog      = \&Tk::PathEntry::Dialog::FDialog;
-	*MotifFDialog = \&Tk::PathEntry::Dialog::FDialog;
+	if ($Tk::VERSION < 804) {
+	    *FDialog      = \&Tk::PathEntry::Dialog::FDialog;
+	    *MotifFDialog = \&Tk::PathEntry::Dialog::FDialog;
+	} else {
+            *tk_getOpenFile = sub {
+                Tk::PathEntry::Dialog::FDialog("tk_getOpenFile", @_);
+            };
+            *tk_getSaveFile = sub {
+                Tk::PathEntry::Dialog::FDialog("tk_getSaveFile", @_);
+            };
+	}
     }
 }
 
@@ -62,18 +74,19 @@ sub Show {
     my @args = @_;
 
     my $pathname;
+    my $pe = $w->Subwidget("PathEntry");
 
     while (1) {
 	undef $pathname;
 
 	$w->after(300, sub {
-		      my $pe = $w->Subwidget("PathEntry");
 		      $pe->focus;
 		      $pe->icursor("end");
 		  });
 
 	my $r = $w->SUPER::Show(@args);
 	$pathname = $w->{PathName} if $r =~ /ok/i;
+	$pe->Finish;
 
 	if (defined $pathname && $w->cget(-create) && -e $pathname) {
 

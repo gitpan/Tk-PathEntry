@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: dialog.t,v 1.4 2001/05/04 18:56:23 eserte Exp $
+# $Id: dialog.t,v 1.10 2003/11/13 21:50:36 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -12,14 +12,17 @@ use Tk;
 use Tk::PathEntry::Dialog qw(as_default);
 
 BEGIN {
+
+    if (!defined $ENV{BATCH}) { $ENV{BATCH} = 1 }
+
     if (!eval q{
 	use Test;
 	1;
-    }) {
-	print "# tests only work with installed Test module\n";
+    } || $ENV{BATCH}) {
+	print "# tests only work in non-BATCH mode with installed Test module\n";
 	print "1..1\n";
 	print "ok 1\n";
-	exit;
+	CORE::exit;
     }
 }
 
@@ -43,7 +46,7 @@ ok(1);
 my $f2 = $top->getSaveFile(-title => "File to save",
 			   -initialfile => "$ENV{HOME}/.cshrc",
 			   -defaultextension => "ignored",
-			   -filetypes => ["ignored"],
+			   -filetypes => [["ignored", "*"]],
 			  );
 yc($f2);
 ok(1);

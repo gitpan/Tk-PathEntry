@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: timex.t,v 1.5 2001/12/03 14:10:15 eserte Exp $
+# $Id: timex.t,v 1.9 2003/11/13 21:50:42 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -21,11 +21,13 @@ BEGIN {
 	print "# tests only work with installed Test and Timex::Project module\n";
 	print "1..1\n";
 	print "ok 1\n";
-	exit;
+	CORE::exit;
     }
 }
 
 BEGIN { plan tests => 2 }
+
+if (!defined $ENV{BATCH}) { $ENV{BATCH} = 1 }
 
 my $timex_project_text = <<'EOF';
 #PJ1 -*- project -*-

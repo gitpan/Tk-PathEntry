@@ -8,6 +8,7 @@ To install, type
 
 	$ perl Makefile.PL
 	$ make
+	$ make test
 	$ make install
 
 For Windows NT and ActiveState Perl, replace "make" with "nmake", if

@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: Makefile.PL,v 1.2 2001/05/06 08:51:12 eserte Exp $
+# $Id: Makefile.PL,v 1.3 2003/10/22 20:44:34 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -26,5 +26,20 @@ WriteMakefile
    'ABSTRACT_FROM' => '',
    'AUTHOR'        => 'Slaven Rezic (srezic@cpan.org)',
   );
+
+sub MY::postamble {
+    my $postamble = "";
+
+    if (defined $ENV{USER} && $ENV{USER} eq 'eserte') {
+	$postamble .= <<'EOF';
+
+.include "../../perl.release.mk"
+.include "../../perl.cvs.mk"
+
+EOF
+    }
+
+    $postamble;
+}
 
 __END__
