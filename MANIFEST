@@ -1,6 +1,8 @@
+Changes
 MANIFEST
 Makefile.PL
 PathEntry.pm
+README
 lib/Tk/PathEntry/Dialog.pm
 t/base.t
 t/timex.t

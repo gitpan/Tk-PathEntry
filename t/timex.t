@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: timex.t,v 1.3 2001/05/03 19:14:18 eserte Exp $
+# $Id: timex.t,v 1.4 2001/05/05 15:58:10 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -52,6 +52,8 @@ my $pathname = ""; #$first_p->pathname;
 ok(!!$t->isa('Timex::Project'), 1);
 
 my $top = tkinit;
+$top->title("Select Timex projects:");
+$top->minsize(300,50);
 my $pe;
 $pe = $top->PathEntry
     (-textvariable => \$pathname,

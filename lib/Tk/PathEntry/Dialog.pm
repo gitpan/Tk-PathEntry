@@ -1,14 +1,14 @@
 # -*- perl -*-
 
 #
-# $Id: Dialog.pm,v 1.3 2001/05/03 19:25:32 eserte Exp $
+# $Id: Dialog.pm,v 1.4 2001/05/04 18:55:23 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
 # This package is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
-# Mail: eserte@cs.tu-berlin.de
+# Mail: srezic@cpan.org
 # WWW:  http://user.cs.tu-berlin.de/~eserte/
 #
 
@@ -102,3 +102,33 @@ sub FDialog
 1;
 
 __END__
+
+=head1 NAME
+
+Tk::PathEntry::Dialog - File dialog using Tk::PathEntry
+
+=head1 SYNOPSIS
+
+    use Tk::PathEntry::Dialog qw(as_default);
+    $mw->getOpenFile;
+
+=head1 DESCRIPTION
+
+With this module, the L<Tk::PathEntry|Tk::PathEntry> can also be used
+as a standard Tk file dialog.
+
+=head1 SEE ALSO
+
+L<Tk::PathEntry (3)|Tk::PathEntry>, L<Tk::getOpenFile (3)|Tk::getOpenFile>.
+
+=head1 AUTHOR
+
+Slaven Rezic <srezic@cpan.org>
+
+=head1 COPYRIGHT
+
+Copyright (c) 2001 Slaven Rezic. All rights
+reserved. This module is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.
+
+=cut

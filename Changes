@@ -1,0 +1,8 @@
+Revision history for Perl extension Tk::PathEntry.
+
+2.10
+	- better POD
+	- added Changes and README files
+
+2.08
+	- first public CPAN release

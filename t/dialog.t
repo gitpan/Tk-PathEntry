@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: dialog.t,v 1.3 2001/05/03 19:41:35 eserte Exp $
+# $Id: dialog.t,v 1.4 2001/05/04 18:56:23 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -35,7 +35,7 @@ EOF
 my $f1 = $top->getOpenFile(-title => "File to open",
 			   -initialdir => $ENV{HOME},
 			   -defaultextension => "ignored",
-			   -filetypes => ["ignored"],
+			   -filetypes => [["ignored", "*"]],
 			  );
 yc($f1);
 ok(1);

@@ -1,14 +1,14 @@
 # -*- perl -*-
 
 #
-# $Id: PathEntry.pm,v 2.8 2001/05/03 19:39:25 eserte Exp $
+# $Id: PathEntry.pm,v 2.10 2001/05/05 15:58:21 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
 # This package is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
-# Mail: eserte@cs.tu-berlin.de
+# Mail: srezic@cpan.org
 # WWW:  http://user.cs.tu-berlin.de/~eserte/
 #
 
@@ -16,7 +16,7 @@ package Tk::PathEntry;
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%02d", q$Revision: 2.8 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 2.10 $ =~ /(\d+)\.(\d+)/);
 
 use base qw(Tk::Derived Tk::Entry);
 
@@ -192,6 +192,91 @@ Tk::PathEntry - Entry widget for selecting paths with completion
     $pe->bind("<Return>" => sub { warn "The pathname is $path\n" });
 
 =head1 DESCRIPTION
+
+This is an alternative to classic file selection dialogs. It works
+more like the file completion in modern shells like C<tcsh> or
+C<bash>.
+
+With the C<Tab> key, you can force the completion of the current path.
+If there are more choices, a window is popping up with these choices.
+With the C<Meta-Backspace> or C<Alt-Backspace> key, the last path
+component will be deleted.
+
+=head1 OPTIONS
+
+B<Tk::PathEntry> supports all standard L<Tk::Entry|Tk::Entry> options
+except C<-vcmd> and C<-validate> (these are used internally in
+B<PathEntry>). The additional options are:
+
+=over 4
+
+=item -initialdir
+
+Set the initial path to the value. Alias: C<-initialfile>. You can
+also use a pre-filled C<-textvariable> to set the initial path.
+
+=item -separator
+
+The character used as the path component separator. For Unix, this is "/".
+
+=item -isdircmd
+
+Can be used to set another directory recognizing subroutine. The
+directory name is passed as second parameter. Alias:
+C<-isdirectorycommand>. The default is a subroutine using C<-d>.
+
+=item -choicescmd
+
+Can be used to set another globbing subroutine. The current pathname
+is passed as second parameter. Alias: C<-choicescommand>. The
+default is a subroutine using the standard C<glob> function.
+
+=back
+
+=head1 METHODS
+
+=over 4
+
+=item Finish
+
+This will popdown the window with the completion choices. It is
+advisable to bind the Return key to call this method. The popdown is
+done automatically when the widget loses the input focus.
+
+=back
+
+=head1 EXAMPLES
+
+If you want to not require from your users to install Tk::PathEntry,
+you can use the following code snippet to create either a PathEntry or
+an Entry, depending on what is installed:
+
+
+    my $e;
+    if (!eval '
+        use Tk::PathEntry;
+        $e = $mw->PathEntry(-textvariable => \$file);
+        $e->bind("<Return>" => sub { $e->Finish });
+        1;
+    ') {
+        $e = $mw->Entry(-textvariable => \$file);
+    }
+    $e->pack;
+
+=head1 SEE ALSO
+
+L<Tk::PathEntry::Dialog (3)|Tk::PathEntry::Dialog>,
+L<Tk::Entry (3)|Tk::Entry>, L<tcsh (1)|tcsh>, L<bash (1)|bash>.
+
+=head1 AUTHOR
+
+Slaven Rezic <srezic@cpan.org>
+
+=head1 COPYRIGHT
+
+Copyright (c) 2001 Slaven Rezic. All rights
+reserved. This module is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.
 
 =cut
 
