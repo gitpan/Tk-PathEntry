@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: dialog.t,v 1.10 2003/11/13 21:50:36 eserte Exp $
+# $Id: dialog.t,v 1.11 2004/09/04 01:12:13 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -24,6 +24,13 @@ BEGIN {
 	print "ok 1\n";
 	CORE::exit;
     }
+
+    if ($^O eq 'MSWin32') {
+	print "1..1\n";
+	print "ok 1 # skip This test does not work on Windows\n";
+	CORE::exit;
+    }
+
 }
 
 BEGIN { plan tests => 3 }

@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: base.t,v 1.10 2003/10/22 21:26:15 eserte Exp $
+# $Id: base.t,v 1.11 2004/09/04 01:12:07 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -33,6 +33,7 @@ my $pe = $top->PathEntry(-textvariable => \$file,
 			 -selectcmd => sub { warn "selected...\n" },
 			 -cancelcmd => sub { warn "cancelled...\n" },
 			 -initialfile => $ENV{HOME})->pack;
+$pe->focus;
 ok(!!Tk::Exists($pe), 1);
 $top->Label(-textvariable => \$file)->pack;
 

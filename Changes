@@ -1,5 +1,8 @@
 Revision history for Perl extension Tk::PathEntry.
 
+2.23
+	- fixes for Windows
+
 2.21
 	- Tk804.025 compatibility fixes
 
