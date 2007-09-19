@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: dialog.t,v 1.11 2004/09/04 01:12:13 eserte Exp $
+# $Id: dialog.t,v 1.12 2007/08/29 16:29:38 k_wittrock Exp $
 # Author: Slaven Rezic
 #
 
@@ -25,12 +25,6 @@ BEGIN {
 	CORE::exit;
     }
 
-    if ($^O eq 'MSWin32') {
-	print "1..1\n";
-	print "ok 1 # skip This test does not work on Windows\n";
-	CORE::exit;
-    }
-
 }
 
 BEGIN { plan tests => 3 }
@@ -42,8 +36,12 @@ No actual writes are performed in this test,
 so you can always say "OK" or "Yes".
 EOF
 
+my $f3 = $top->PathEntryDialog->Show;
+yc($f3);
+ok(1);
+
 my $f1 = $top->getOpenFile(-title => "File to open",
-			   -initialdir => $ENV{HOME},
+			   -initialdir => '.',
 			   -defaultextension => "ignored",
 			   -filetypes => [["ignored", "*"]],
 			  );
@@ -51,15 +49,11 @@ yc($f1);
 ok(1);
 
 my $f2 = $top->getSaveFile(-title => "File to save",
-			   -initialfile => "$ENV{HOME}/.cshrc",
+			   -initialfile => "$0",
 			   -defaultextension => "ignored",
 			   -filetypes => [["ignored", "*"]],
 			  );
 yc($f2);
-ok(1);
-
-my $f3 = $top->PathEntryDialog->Show;
-yc($f3);
 ok(1);
 
 sub yc {

@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: Makefile.PL,v 1.4 2004/09/04 01:11:50 eserte Exp $
+# $Id: Makefile.PL,v 1.5 2007/08/29 16:16:02 k_wittrock Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -20,6 +20,7 @@ WriteMakefile
    'NAME'	   => 'Tk::PathEntry',
    'VERSION_FROM'  => 'PathEntry.pm',
    'PREREQ_PM'     => { Tk => 800.020 },
+   'NO_META'       => 1,
 
    'dist'          => {'POSTOP'=>'-$(CHMOD) 644 $(DISTVNAME).tar$(SUFFIX)'},
 

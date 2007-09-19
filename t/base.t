@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: base.t,v 1.11 2004/09/04 01:12:07 eserte Exp $
+# $Id: base.t,v 1.12 2007/08/29 16:29:38 k_wittrock Exp $
 # Author: Slaven Rezic
 #
 
@@ -26,6 +26,7 @@ BEGIN {
 BEGIN { plan tests => 3 }
 
 if (!defined $ENV{BATCH}) { $ENV{BATCH} = 1 }
+defined $ENV{HOME}  or  $ENV{HOME} = '.';
 
 my $top = new MainWindow;
 my $file; # = "$ENV{HOME}";
